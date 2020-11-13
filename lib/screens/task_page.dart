@@ -1,14 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:goals_todo/database_helper.dart';
 import 'package:goals_todo/models/task_model.dart';
+import 'package:goals_todo/models/todo_model.dart';
 import 'package:goals_todo/widgets.dart';
 
 class TaskPage extends StatefulWidget {
+
+  final Task task;
+  TaskPage({@required this.task});
+
   @override
   _TaskPageState createState() => _TaskPageState();
 }
 
 class _TaskPageState extends State<TaskPage> {
+
+  DatabaseHelper _dbHelper = DatabaseHelper();
+
+  int _taskId = 0;
+  String _taskTitle = "";
+
+  @override
+  void initState() {
+
+    if (widget.task != null) {
+      _taskTitle = widget.task.title;
+      _taskId = widget.task.id;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,17 +68,23 @@ class _TaskPageState extends State<TaskPage> {
                               onSubmitted: (value) async {
                                 print("Field value:, $value");
                                 DatabaseHelper _dbHelper = DatabaseHelper();
+
+                                // Check if the value is not empty
                                 if (value != ""){
+
+                                  if(widget.task == null){
                                     DatabaseHelper _dbHelper = DatabaseHelper();
                                     Task _newtask = Task(
-                                      title: value
+                                        title: value
                                     );
                                     await _dbHelper.insertTask(_newtask);
-
-                                    print("New task has been created");
+                                  } else {
+                                    print("Update the existing task");
+                                  }
                                 }
 
                               },
+                              controller: TextEditingController()..text = _taskTitle  ,
                               decoration: InputDecoration(
                                 hintText: "Enter Tasks Title",
                                 border: InputBorder.none,
@@ -84,22 +111,94 @@ class _TaskPageState extends State<TaskPage> {
                       ),
                     ),
                   ),
-                  ToDO(
-                    text: "Create 1st Todo",
-                    isDone: false,
+                  FutureBuilder(
+                    initialData: [],
+                    future: _dbHelper.getToDo(_taskId),
+                    builder: (context, snapshot) {
+                      return Expanded(
+                        child: ListView.builder(
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                // Switch the completion state
+
+                              },
+                              child: ToDoWidget(
+                                text: snapshot.data[index].title,
+                                isDone: snapshot.data[index].isDone == 0 ? false : true,
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
-                  ToDO(
-                    text: "Create 1st Todo",
-                    isDone: true,
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        Text("List View Text")
+                      ],
+                    ),
                   ),
-                  ToDO(
-                    text: "Create 1st Todo",
-                    isDone: false,
-                  ),
-                  ToDO(
-                    isDone: true,
-                  ),
-                ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 20.0,
+                          height: 20.0,
+                          margin: EdgeInsets.only(
+                              right: 12.0
+                          ),
+                          decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(6.0),
+                              border: Border.all(
+                                  color: Color(0xFF86829D),
+                                  width: 1.5
+                              )
+                          ),
+                          child: Image(
+                            image: AssetImage(
+                              'assets/images/check_icon.png',
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            onSubmitted: (value) async {
+                              print("Field value:, $value");
+                              DatabaseHelper _dbHelper = DatabaseHelper();
+
+                              // Check if the value is not empty
+                              if (value != ""){
+
+                                if(widget.task != null){
+                                  DatabaseHelper _dbHelper = DatabaseHelper();
+                                  ToDo _newToDo = ToDo(
+                                    title: value,
+                                    isDone: 0,
+                                    taskId: widget.task.id,
+                                  );
+                                  await _dbHelper.insertToDo(_newToDo);
+                                  setState(() {});
+                                  print("Creating new Todo");
+                                }
+                              }
+                            },
+                            decoration: InputDecoration(
+                              hintText: "Enter To do tasks...",
+                              border: InputBorder.none,
+                            )
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  ]
               ),
               Positioned(
                 bottom: 24.0,

@@ -50,11 +50,11 @@ class TaskCardWidget extends StatelessWidget {
   }
 }
 
-class ToDO extends StatelessWidget {
+class ToDoWidget extends StatelessWidget {
 
   final String text;
   final bool isDone;
-  ToDO({this.text, @required this.isDone});
+  ToDoWidget({this.text, @required this.isDone});
 
   @override
   Widget build(BuildContext context) {
